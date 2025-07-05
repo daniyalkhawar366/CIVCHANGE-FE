@@ -21,7 +21,7 @@ const Converter: React.FC = () => {
 
   useEffect(() => {
     // Initialize socket connection
-    const newSocket = io('http://localhost:3001');
+    const newSocket = io('https://civchange-be-production.up.railway.app');
     setSocket(newSocket);
 
     newSocket.on('conversion-progress', (data: ConversionJob) => {
@@ -64,7 +64,7 @@ const Converter: React.FC = () => {
       formData.append('pdf', file);
 
       // Upload file
-      const uploadResponse = await axios.post('http://localhost:3001/api/upload', formData, {
+      const uploadResponse = await axios.post('https://civchange-be-production.up.railway.app/api/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -73,7 +73,7 @@ const Converter: React.FC = () => {
       const { jobId } = uploadResponse.data;
       
       // Start conversion
-      await axios.post('http://localhost:3001/api/convert', { jobId });
+      await axios.post('https://civchange-be-production.up.railway.app/api/convert', { jobId });
       
       toast.success('File uploaded successfully! Starting conversion...');
       
@@ -129,7 +129,7 @@ const Converter: React.FC = () => {
   const handleDownload = () => {
     if (currentJob?.downloadUrl) {
       const link = document.createElement('a');
-      link.href = `http://localhost:3001${currentJob.downloadUrl}`;
+      link.href = `https://civchange-be-production.up.railway.app${currentJob.downloadUrl}`;
       link.download = currentJob.fileName || 'converted.psd';
       document.body.appendChild(link);
       link.click();
