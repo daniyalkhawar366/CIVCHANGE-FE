@@ -21,10 +21,24 @@ const Converter: React.FC = () => {
 
   useEffect(() => {
     // Initialize socket connection
-    const newSocket = io('https://civchange-be-production.up.railway.app');
+    const newSocket = io('https://civchange-be-production.up.railway.app', {
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
+    });
     setSocket(newSocket);
 
+    newSocket.on('connect', () => {
+      console.log('WebSocket connected');
+      toast.success('Connected to server');
+    });
+
+    newSocket.on('connect_error', (error) => {
+      console.error('WebSocket connection error:', error);
+      toast.error('Failed to connect to server');
+    });
+
     newSocket.on('conversion-progress', (data: ConversionJob) => {
+      console.log('Conversion progress:', data);
       setCurrentJob(data);
       
       if (data.status === 'completed') {
@@ -34,6 +48,10 @@ const Converter: React.FC = () => {
         setIsConverting(false);
         toast.error(`Conversion failed: ${data.error}`);
       }
+    });
+
+    newSocket.on('disconnect', () => {
+      console.log('WebSocket disconnected');
     });
 
     return () => {
@@ -58,6 +76,9 @@ const Converter: React.FC = () => {
 
     try {
       setIsConverting(true);
+      setCurrentJob(null); // Reset previous job
+      
+      console.log('Uploading file:', file.name, 'Size:', file.size);
       
       // Create FormData for file upload
       const formData = new FormData();
@@ -68,19 +89,31 @@ const Converter: React.FC = () => {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
+        timeout: 60000, // 60 second timeout
       });
 
+      console.log('Upload response:', uploadResponse.data);
       const { jobId } = uploadResponse.data;
       
       // Start conversion
-      await axios.post('https://civchange-be-production.up.railway.app/api/convert', { jobId });
+      await axios.post('https://civchange-be-production.up.railway.app/api/convert', { jobId }, {
+        timeout: 30000, // 30 second timeout
+      });
       
       toast.success('File uploaded successfully! Starting conversion...');
       
-    } catch (error) {
+    } catch (error: any) {
       setIsConverting(false);
       console.error('Upload error:', error);
-      toast.error('Failed to upload file. Please try again.');
+      
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        toast.error(`Upload failed: ${error.response.data?.message || error.response.statusText}`);
+      } else if (error.request) {
+        toast.error('Network error: Unable to reach the server');
+      } else {
+        toast.error('Failed to upload file. Please try again.');
+      }
     }
   }, []);
 
@@ -135,6 +168,12 @@ const Converter: React.FC = () => {
       link.click();
       document.body.removeChild(link);
     }
+  };
+
+  const handleReset = () => {
+    setIsConverting(false);
+    setCurrentJob(null);
+    toast.success('Reset successful. You can now upload a new file.');
   };
 
   return (
@@ -226,6 +265,18 @@ const Converter: React.FC = () => {
                   <p className="text-red-800 text-sm">
                     Error: {currentJob.error}
                   </p>
+                </div>
+              )}
+
+              {/* Reset Button - Show when stuck or after completion */}
+              {(isConverting || currentJob?.status === 'completed' || currentJob?.status === 'error') && (
+                <div className="mt-4">
+                  <button
+                    onClick={handleReset}
+                    className="flex items-center space-x-2 bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    <span>Reset & Upload New File</span>
+                  </button>
                 </div>
               )}
             </div>
