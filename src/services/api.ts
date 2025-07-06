@@ -7,6 +7,33 @@ const api = axios.create({
   timeout: 30000,
 });
 
+// Add request interceptor to include JWT token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor to handle token expiration
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 export interface UploadResponse {
   jobId: string;
   message: string;
@@ -22,6 +49,93 @@ export interface ConversionJob {
   error?: string;
 }
 
+// Authentication interfaces
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  name: string;
+}
+
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+    isVerified: boolean;
+  };
+}
+
+export interface VerifyEmailRequest {
+  code: string;
+}
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  code: string;
+  newPassword: string;
+}
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  isVerified: boolean;
+}
+
+// Authentication API functions
+export const register = async (data: RegisterRequest): Promise<AuthResponse> => {
+  const response = await api.post<AuthResponse>('/auth/register', data);
+  return response.data;
+};
+
+export const verifyEmail = async (data: VerifyEmailRequest): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>('/auth/verifyEmail', data);
+  return response.data;
+};
+
+export const login = async (data: LoginRequest): Promise<AuthResponse> => {
+  const response = await api.post<AuthResponse>('/auth/login', data);
+  return response.data;
+};
+
+export const forgotPassword = async (data: ForgotPasswordRequest): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>('/auth/forgot-password', data);
+  return response.data;
+};
+
+export const resetPassword = async (data: ResetPasswordRequest): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>('/auth/reset-password', data);
+  return response.data;
+};
+
+export const resendVerification = async (data: ForgotPasswordRequest): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>('/auth/resend-verification', data);
+  return response.data;
+};
+
+export const getProfile = async (): Promise<UserProfile> => {
+  const response = await api.get<UserProfile>('/auth/profile');
+  return response.data;
+};
+
+export const updateProfile = async (data: { name: string }): Promise<UserProfile> => {
+  const response = await api.put<UserProfile>('/auth/profile', data);
+  return response.data;
+};
+
+// File conversion API functions
 export const uploadFile = async (file: File): Promise<UploadResponse> => {
   const formData = new FormData();
   formData.append('pdf', file);

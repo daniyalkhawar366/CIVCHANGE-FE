@@ -29,7 +29,6 @@ const Converter: React.FC = () => {
 
     newSocket.on('connect', () => {
       console.log('WebSocket connected');
-      toast.success('Connected to server');
     });
 
     newSocket.on('connect_error', (error) => {
