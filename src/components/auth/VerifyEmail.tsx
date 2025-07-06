@@ -1,155 +1,150 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { verifyEmail, resendVerification } from '../../services/api';
-import toast from 'react-hot-toast';
 
 const VerifyEmail: React.FC = () => {
-  const [code, setCode] = useState('');
-  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const location = useLocation();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Get email from location state (passed from registration)
+  const email = location.state?.email || '';
+
+  const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!code) {
-      toast.error('Please enter the verification code');
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    if (!otp.trim()) {
+      setError('Please enter the verification code');
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
     try {
-      await verifyEmail({ code });
-      toast.success('Email verified successfully!');
-      navigate('/login');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Verification failed');
+      await verifyEmail({ code: otp });
+      setSuccess('Email verified successfully! Redirecting to dashboard...');
+      // Automatically redirect to dashboard after successful verification
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 2000);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Verification failed. Please check the code and try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResend = async () => {
+  const handleResendOTP = async () => {
     if (!email) {
-      toast.error('Please enter your email address');
+      setError('Email not found. Please register again.');
       return;
     }
 
     setResendLoading(true);
+    setError('');
+
     try {
       await resendVerification({ email });
-      toast.success('Verification code sent to your email');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to resend verification code');
+      setSuccess('Verification code has been resent to your email.');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to resend verification code.');
     } finally {
       setResendLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 animate-fade-in">
-      {/* Back to Home Button */}
-      <div className="absolute top-8 left-8 animate-slide-up">
-        <Link to="/" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          <span className="text-sm font-medium">Back to Home</span>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4 py-12">
+      <div className="absolute top-4 left-4">
+        <Link 
+          to="/" 
+          className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-600 bg-white rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+        >
+          ← Back to Home
         </Link>
       </div>
+      
+      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg animate-fade-in">
+        <div className="text-center">
+          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
+            <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">Verify Your Email</h2>
+          <p className="text-gray-600">
+            We've sent a verification code to <span className="font-medium">{email}</span>
+          </p>
+        </div>
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 animate-slide-up">
-          Verify your email
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600 animate-slide-up animation-delay-100">
-          We sent a verification code to your email address
-        </p>
-      </div>
+        {location.state?.message && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+            {location.state.message}
+          </div>
+        )}
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md animate-slide-up animation-delay-200">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
-            <div className="animate-slide-up animation-delay-300">
-              <label htmlFor="code" className="block text-sm font-medium text-gray-700">
-                Verification Code
-              </label>
-              <div className="mt-1">
-                <input
-                  id="code"
-                  name="code"
-                  type="text"
-                  required
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
-                  placeholder="Enter the 6-digit code"
-                />
-              </div>
-            </div>
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            {error}
+          </div>
+        )}
 
-            <div className="animate-slide-up animation-delay-400">
-              <button
-                type="submit"
-                disabled={loading}
-                className="group relative w-full flex justify-center py-2 px-4 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                {loading ? 'Verifying...' : 'Verify Email'}
-              </button>
-            </div>
-          </form>
+        {success && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+            {success}
+          </div>
+        )}
 
-          <div className="mt-6 animate-slide-up animation-delay-500">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Need a new code?</span>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <div className="space-y-4">
-                <div className="animate-slide-up animation-delay-600">
-                  <label htmlFor="resend-email" className="block text-sm font-medium text-gray-700">
-                    Email address
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="resend-email"
-                      name="resend-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
-                      placeholder="Enter your email"
-                    />
-                  </div>
-                </div>
-                <div className="animate-slide-up animation-delay-700">
-                  <button
-                    type="button"
-                    onClick={handleResend}
-                    disabled={resendLoading}
-                    className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                  >
-                    {resendLoading ? 'Sending...' : 'Resend Code'}
-                  </button>
-                </div>
-              </div>
-            </div>
+        <form className="mt-8 space-y-6" onSubmit={handleVerify}>
+          <div>
+            <label htmlFor="otp" className="block text-sm font-medium text-gray-700 mb-1">
+              Verification Code
+            </label>
+            <input
+              id="otp"
+              name="otp"
+              type="text"
+              required
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-center text-lg tracking-widest"
+              placeholder="Enter 6-digit code"
+              maxLength={6}
+            />
           </div>
 
-          <div className="mt-6 text-center animate-slide-up animation-delay-800">
-            <Link
-              to="/login"
-              className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors duration-200"
-            >
-              Back to login
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? 'Verifying...' : 'Verify Email'}
+          </button>
+        </form>
+
+        <div className="space-y-4">
+          <button
+            onClick={handleResendOTP}
+            disabled={resendLoading}
+            className="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-200 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {resendLoading ? 'Sending...' : 'Resend Verification Code'}
+          </button>
+        </div>
+
+        <div className="text-center">
+          <p className="text-gray-600">
+            Already verified?{' '}
+            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+              Sign in
             </Link>
-          </div>
+          </p>
         </div>
       </div>
     </div>

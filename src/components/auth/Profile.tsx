@@ -1,55 +1,68 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getProfile, updateProfile } from '../../services/api';
 import toast from 'react-hot-toast';
 
 const Profile: React.FC = () => {
   const { user, logout } = useAuth();
-  const [name, setName] = useState('');
+  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [profileLoading, setProfileLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [formData, setFormData] = useState({
+    name: ''
+  });
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const profile = await getProfile();
-        setName(profile.name);
-      } catch (error) {
-        console.error('Failed to fetch profile:', error);
-        toast.error('Failed to load profile');
-      } finally {
-        setProfileLoading(false);
-      }
-    };
-
     fetchProfile();
   }, []);
 
+  const fetchProfile = async () => {
+    try {
+      const userProfile = await getProfile();
+      setProfile(userProfile);
+      setFormData({ name: userProfile.name });
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load profile');
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!name.trim()) {
-      toast.error('Name cannot be empty');
-      return;
-    }
-
     setLoading(true);
+    setError('');
+    setSuccess('');
+
     try {
-      await updateProfile({ name: name.trim() });
-      toast.success('Profile updated successfully!');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to update profile');
+      const updatedProfile = await updateProfile(formData);
+      setProfile(updatedProfile);
+      setSuccess('Profile updated successfully!');
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to update profile');
     } finally {
       setLoading(false);
     }
   };
 
-  if (profileLoading) {
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  if (!profile) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center animate-fade-in">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Loading profile...</p>
         </div>
       </div>
@@ -57,105 +70,164 @@ const Profile: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 animate-fade-in">
-      {/* Back to Home Button */}
-      <div className="absolute top-8 left-8 animate-slide-up">
-        <Link to="/" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          <span className="text-sm font-medium">Back to Home</span>
-        </Link>
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation Bar */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-4">
+              <Link 
+                to="/" 
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Home
+              </Link>
+              <Link 
+                to="/dashboard" 
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Dashboard
+              </Link>
+              <Link 
+                to="/profile" 
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Profile
+              </Link>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
       </div>
-      
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white shadow rounded-lg animate-slide-up">
-          <div className="px-4 py-5 sm:p-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 mb-6 animate-slide-up animation-delay-100">
-              Profile Information
-            </h3>
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 animate-slide-up animation-delay-200">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile</h1>
+          <p className="text-gray-600">Manage your account settings and information</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Profile Information */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Information</h2>
+            
+            {error && (
+              <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+                {error}
+              </div>
+            )}
+
+            {success && (
+              <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
+                {success}
+              </div>
+            )}
+
+            <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Email
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address
                 </label>
-                <div className="mt-1">
-                  <input
-                    type="email"
-                    value={user?.email || ''}
-                    disabled
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500 sm:text-sm"
-                  />
-                </div>
+                <input
+                  type="email"
+                  value={profile.email}
+                  disabled
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Role
                 </label>
-                <div className="mt-1">
-                  <input
-                    type="text"
-                    value={user?.role || ''}
-                    disabled
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-500 sm:text-sm"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={profile.role}
+                  disabled
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
+                />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Verification Status
                 </label>
-                <div className="mt-1">
+                <div className="flex items-center">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    user?.isVerified 
+                    profile.isVerified 
                       ? 'bg-green-100 text-green-800' 
                       : 'bg-yellow-100 text-yellow-800'
                   }`}>
-                    {user?.isVerified ? 'Verified' : 'Not Verified'}
+                    {profile.isVerified ? 'Verified' : 'Pending Verification'}
                   </span>
                 </div>
               </div>
             </div>
+          </div>
 
-            <form onSubmit={handleSubmit} className="mt-6 animate-slide-up animation-delay-300">
+          {/* Edit Profile Form */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Edit Profile</h2>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                   Full Name
                 </label>
-                <div className="mt-1">
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
-                    placeholder="Enter your full name"
-                  />
-                </div>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="Enter your full name"
+                />
               </div>
 
-              <div className="mt-6 flex justify-between animate-slide-up animation-delay-400">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-                >
-                  {loading ? 'Updating...' : 'Update Profile'}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={logout}
-                  className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
-                >
-                  Logout
-                </button>
-              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? 'Updating...' : 'Update Profile'}
+              </button>
             </form>
+          </div>
+        </div>
+
+        {/* Account Actions */}
+        <div className="mt-8 bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Actions</h2>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+              <div>
+                <h3 className="text-sm font-medium text-gray-900">Change Password</h3>
+                <p className="text-sm text-gray-500">Update your account password</p>
+              </div>
+              <Link 
+                to="/forgot-password" 
+                className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+              >
+                Change Password
+              </Link>
+            </div>
+
+            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+              <div>
+                <h3 className="text-sm font-medium text-gray-900">Delete Account</h3>
+                <p className="text-sm text-gray-500">Permanently delete your account and all data</p>
+              </div>
+              <button className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+                Delete Account
+              </button>
+            </div>
           </div>
         </div>
       </div>

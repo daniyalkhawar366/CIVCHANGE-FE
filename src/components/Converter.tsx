@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Download, FileText, CheckCircle, AlertCircle, Loader } from 'lucide-react';
-import axios from 'axios';
 import { io, Socket } from 'socket.io-client';
 import toast from 'react-hot-toast';
+import { uploadFile, startConversion, getJobStatus } from '../services/api';
 
 interface ConversionJob {
   jobId: string;
@@ -79,25 +79,13 @@ const Converter: React.FC = () => {
       
       console.log('Uploading file:', file.name, 'Size:', file.size);
       
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('pdf', file);
-
-      // Upload file
-      const uploadResponse = await axios.post('https://civchange-be-production.up.railway.app/api/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        timeout: 60000, // 60 second timeout
-      });
-
-      console.log('Upload response:', uploadResponse.data);
-      const { jobId } = uploadResponse.data;
+      // Upload file using API service
+      const uploadResponse = await uploadFile(file);
+      console.log('Upload response:', uploadResponse);
+      const { jobId } = uploadResponse;
       
-      // Start conversion
-      await axios.post('https://civchange-be-production.up.railway.app/api/convert', { jobId }, {
-        timeout: 30000, // 30 second timeout
-      });
+      // Start conversion using API service
+      await startConversion(jobId);
       
       toast.success('File uploaded successfully! Starting conversion...');
       
@@ -199,20 +187,16 @@ const Converter: React.FC = () => {
             } ${isConverting ? 'pointer-events-none opacity-50' : ''}`}
           >
             <input {...getInputProps()} />
-            <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             <p className="text-lg font-medium text-gray-900 mb-2">
-              {isDragActive ? 'Drop your PDF here' : 'Drag & drop your PDF here'}
+              {isDragActive ? 'Drop the PDF file here' : 'Drag & drop a PDF file here'}
             </p>
-            <p className="text-gray-500 mb-4">
-              or click to browse files
-            </p>
-            <p className="text-sm text-gray-400">
-              Only PDF files are supported (max 50MB)
-            </p>
+            <p className="text-gray-500">or click to browse</p>
+            <p className="text-sm text-gray-400 mt-2">Maximum file size: 50MB</p>
           </div>
         </div>
 
-        {/* Conversion Progress */}
+        {/* Progress Section */}
         {currentJob && (
           <div className="mb-8">
             <div className="bg-gray-50 rounded-lg p-6">
@@ -220,61 +204,56 @@ const Converter: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   {getStatusIcon(currentJob.status)}
                   <div>
-                    <h3 className="font-medium text-gray-900">
-                      {getStatusMessage(currentJob.status)}
+                    <h3 className="text-lg font-medium text-gray-900">
+                      {currentJob.fileName || 'Converting...'}
                     </h3>
-                    {currentJob.fileName && (
-                      <p className="text-sm text-gray-500">
-                        File: {currentJob.fileName}
-                      </p>
-                    )}
+                    <p className="text-sm text-gray-600">
+                      {getStatusMessage(currentJob.status)}
+                    </p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-2xl font-bold text-blue-600">
+                {currentJob.progress !== undefined && (
+                  <span className="text-sm font-medium text-gray-500">
                     {currentJob.progress}%
                   </span>
-                </div>
+                )}
               </div>
               
-              {/* Progress Bar */}
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${currentJob.progress}%` }}
-                />
-              </div>
+              {currentJob.progress !== undefined && (
+                <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                  <div
+                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${currentJob.progress}%` }}
+                  ></div>
+                </div>
+              )}
 
-              {/* Download Button */}
               {currentJob.status === 'completed' && currentJob.downloadUrl && (
-                <div className="mt-4">
+                <div className="flex items-center justify-center space-x-4">
                   <button
                     onClick={handleDownload}
-                    className="flex items-center space-x-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+                    className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                   >
-                    <Download className="w-5 h-5" />
-                    <span>Download PSD File</span>
+                    <Download className="w-4 h-4 mr-2" />
+                    Download PSD
+                  </button>
+                  <button
+                    onClick={handleReset}
+                    className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    Convert Another File
                   </button>
                 </div>
               )}
 
-              {/* Error Message */}
-              {currentJob.status === 'error' && currentJob.error && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-800 text-sm">
-                    Error: {currentJob.error}
-                  </p>
-                </div>
-              )}
-
-              {/* Reset Button - Show when stuck or after completion */}
-              {(isConverting || currentJob?.status === 'completed' || currentJob?.status === 'error') && (
-                <div className="mt-4">
+              {currentJob.status === 'error' && (
+                <div className="text-center">
+                  <p className="text-red-600 mb-4">{currentJob.error}</p>
                   <button
                     onClick={handleReset}
-                    className="flex items-center space-x-2 bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors"
+                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                   >
-                    <span>Reset & Upload New File</span>
+                    Try Again
                   </button>
                 </div>
               )}
@@ -284,21 +263,13 @@ const Converter: React.FC = () => {
 
         {/* Instructions */}
         <div className="bg-blue-50 rounded-lg p-6">
-          <h3 className="text-lg font-medium text-blue-900 mb-4">
-            How to use:
-          </h3>
+          <h3 className="text-lg font-medium text-blue-900 mb-3">How to use:</h3>
           <ol className="list-decimal list-inside space-y-2 text-blue-800">
             <li>Export your Canva design as a PDF file</li>
-            <li>Upload the PDF file using the drop zone above</li>
-            <li>Wait for the conversion to complete (usually takes 1-2 minutes)</li>
-            <li>Download your PSD file ready for Photoshop</li>
+            <li>Drag and drop the PDF file above or click to browse</li>
+            <li>Wait for the conversion to complete</li>
+            <li>Download your PSD file with preserved layers</li>
           </ol>
-          <div className="mt-4 p-4 bg-blue-100 rounded-lg">
-            <p className="text-sm text-blue-800">
-              <strong>Note:</strong> The conversion preserves text layers, images, and basic shapes. 
-              Some complex effects may need manual adjustment in Photoshop.
-            </p>
-          </div>
         </div>
       </div>
     </div>
