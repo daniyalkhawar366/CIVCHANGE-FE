@@ -1,9 +1,7 @@
 import axios from 'axios';
 
-// Use proxy in development, direct URL in production
-const API_BASE_URL = import.meta.env.DEV 
-  ? '' // Use proxy in development
-  : 'https://civchange-be-production.up.railway.app';
+// Always use production backend for API requests
+const API_BASE_URL = 'https://civchange-be-production.up.railway.app';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -169,6 +167,63 @@ export const startConversion = async (jobId: string): Promise<void> => {
 
 export const getJobStatus = async (jobId: string): Promise<ConversionJob> => {
   const response = await api.get<ConversionJob>(`/api/job/${jobId}`);
+  return response.data;
+};
+
+// Admin User Management interfaces
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+}
+
+export interface GetAllUsersResponse {
+  users: AdminUser[];
+  total: number;
+}
+
+export const getAllUsers = async (page = 1, search = ''): Promise<GetAllUsersResponse> => {
+  const response = await api.get(`/admin/users?page=${page}&search=${encodeURIComponent(search)}`);
+  // Defensive: default to [] and 0 if backend returns undefined
+  return {
+    users: response.data.users ?? [],
+    total: response.data.total ?? 0,
+  };
+};
+
+export const updateUser = async (id: string, data: Partial<AdminUser>): Promise<AdminUser> => {
+  const response = await api.put(`/admin/users/${id}`, data);
+  return response.data.user;
+};
+
+export const deleteUser = async (id: string): Promise<{ message: string }> => {
+  const response = await api.delete(`/admin/users/${id}`);
+  return response.data;
+};
+
+export const createUser = async (data: Partial<AdminUser>): Promise<AdminUser> => {
+  const response = await api.post('/admin/users', data);
+  return response.data.user;
+};
+
+// Admin Settings interfaces
+export interface Settings {
+  conversionLimit: number;
+  starterPrice: number;
+  proPrice: number;
+  businessPrice: number;
+  // Add more fields as needed
+}
+
+export const getSettings = async (): Promise<Settings> => {
+  const response = await api.get('/admin/settings');
+  return response.data;
+};
+
+export const updateSettings = async (settings: Partial<Settings>): Promise<Settings> => {
+  const response = await api.put('/admin/settings', settings);
   return response.data;
 };
 
