@@ -60,7 +60,10 @@ const AdminSettings: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!form) return;
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    // Only allow numbers, fallback to 0 if empty
+    const numValue = value === '' ? 0 : Number(value);
+    setForm({ ...form, [name]: isNaN(numValue) ? 0 : numValue });
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -68,12 +71,14 @@ const AdminSettings: React.FC = () => {
     if (!form) return;
     setSaving(true);
     try {
-      const updated = await updateSettings({
-        conversionLimit: Number(form.conversionLimit),
-        starterPrice: Number(form.starterPrice),
-        proPrice: Number(form.proPrice),
-        businessPrice: Number(form.businessPrice),
-      });
+      // Ensure all values are numbers and not NaN
+      const safeForm = {
+        conversionLimit: Number(form.conversionLimit) || 0,
+        starterPrice: Number(form.starterPrice) || 0,
+        proPrice: Number(form.proPrice) || 0,
+        businessPrice: Number(form.businessPrice) || 0,
+      };
+      const updated = await updateSettings(safeForm);
       setForm(updated);
       toast.success('Settings saved!');
     } catch (err) {
@@ -131,10 +136,12 @@ const AdminSettings: React.FC = () => {
                     <input
                       type={field.type}
                       name={field.name}
-                      value={form[field.name as keyof Settings]}
+                      value={form[field.name as keyof Settings] ?? 0}
                       onChange={handleChange}
                       className="w-full border border-gray-300 rounded-xl px-4 py-2 shadow-inner focus:ring-2 focus:ring-indigo-400 focus:border-indigo-500 transition outline-none bg-white text-gray-900 pr-10"
                       min={0}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                       {field.icon}
