@@ -28,7 +28,7 @@ const FAQ: React.FC = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="section-padding bg-gradient-to-br from-slate-50 to-white animate-fade-in-up">
+    <section id="faq" className="section-padding animate-fade-in-up">
       <div className="container-max">
         <div className="text-center mb-16">
           <p className="text-sm font-light text-gray-500 mb-4">FAQ</p>

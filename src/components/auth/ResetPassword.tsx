@@ -45,7 +45,7 @@ const ResetPassword: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 animate-fade-in">
+    <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 animate-fade-in">
       {/* Back to Home Button */}
       <div className="absolute top-8 left-8 animate-slide-up">
         <Link to="/" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200">

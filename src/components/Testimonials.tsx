@@ -77,7 +77,7 @@ const Testimonials: React.FC = () => {
   }, [testimonials.length]);
 
   return (
-    <section id="testimonials" className="section-padding bg-gradient-to-br from-slate-50 to-white">
+    <section id="testimonials" className="section-padding">
       <div className="container-max">
         <div className="text-center mb-16">
           <p className="text-sm font-light text-gray-500 mb-4">TESTIMONIALS</p>

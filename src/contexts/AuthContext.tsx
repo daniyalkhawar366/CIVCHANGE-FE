@@ -52,8 +52,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await loginApi({ email, password });
       localStorage.setItem('authToken', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      setUser(response.user);
+      const userProfile = await getProfile();
+      setUser(userProfile);
     } catch (error) {
       throw error;
     }
@@ -63,8 +63,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await registerApi({ email, password, name });
       localStorage.setItem('authToken', response.token);
-      localStorage.setItem('user', JSON.stringify(response.user));
-      setUser(response.user);
+      const userProfile = await getProfile();
+      setUser(userProfile);
     } catch (error) {
       throw error;
     }
@@ -72,7 +72,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
     setUser(null);
   };
 

@@ -135,8 +135,8 @@ export const resendVerification = async (data: ForgotPasswordRequest): Promise<{
 };
 
 export const getProfile = async (): Promise<UserProfile> => {
-  const response = await api.get<UserProfile>('/auth/profile');
-  return response.data;
+  const response = await api.get('/auth/profile');
+  return response.data.user;
 };
 
 export const updateProfile = async (data: { name: string }): Promise<UserProfile> => {

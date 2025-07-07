@@ -20,7 +20,7 @@ const steps = [
 ];
 
 const HowItWorks: React.FC = () => (
-  <section id="how-it-works" className="section-padding bg-white/60">
+  <section id="how-it-works" className="section-padding">
     <div className="container-max">
       <div className="text-center mb-16">
         <p className="text-sm font-light text-gray-500 mb-4">HOW IT WORKS</p>

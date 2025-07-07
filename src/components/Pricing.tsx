@@ -52,7 +52,7 @@ function getRedFeatures(planIdx: number) {
 }
 
 const Pricing: React.FC = () => (
-  <section id="pricing" className="section-padding bg-gradient-to-br from-slate-50 to-white animate-fade-in-up">
+  <section id="pricing" className="section-padding animate-fade-in-up">
     <div className="container-max">
       <div className="text-center mb-16">
         <p className="text-sm font-light text-gray-500 mb-4">PRICING</p>
