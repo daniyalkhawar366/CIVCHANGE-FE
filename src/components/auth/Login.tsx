@@ -11,6 +11,7 @@ const Login: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,13 +22,13 @@ const Login: React.FC = () => {
     }
 
     setLoading(true);
+    setError('');
     try {
       await login(email, password);
       toast.success('Login successful!');
       navigate('/');
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Login failed');
-    } finally {
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Invalid email or password');
       setLoading(false);
     }
   };
