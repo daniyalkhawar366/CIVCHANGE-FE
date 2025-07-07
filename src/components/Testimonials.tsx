@@ -102,7 +102,7 @@ const Testimonials: React.FC = () => {
                     <div className="flex items-start space-x-8">
                       <div className="flex-shrink-0">
                         <div className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg" style={{background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)'}}>
-                          {testimonial.avatar}
+                            {testimonial.avatar}
                         </div>
                       </div>
                       <div className="flex-1">

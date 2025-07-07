@@ -9,8 +9,8 @@ const Footer = () => {
         {/* Brand and tagline */}
         <div className="flex flex-col items-start">
           <h3 className="text-xl font-bold">
-            C<span className="text-teal-400">IV</span>CHANGE
-          </h3>
+              C<span className="text-teal-400">IV</span>CHANGE
+            </h3>
           <span className="text-xs text-gray-400 mt-1">Canva to Photoshop PSD Converter</span>
         </div>
         {/* Social icons */}
