@@ -98,39 +98,33 @@ const Testimonials: React.FC = () => {
             >
               {testimonials.map((testimonial, index) => (
                 <div key={index} className="w-full flex-shrink-0 px-4">
-                  <div className="glass-card p-8 md:p-12">
-                    <div className="flex items-start space-x-6">
+                  <div className="bg-white/80 backdrop-blur-lg shadow-2xl rounded-3xl p-10 md:p-14 transition-transform duration-300 hover:scale-105 hover:shadow-3xl border border-white/40">
+                    <div className="flex items-start space-x-8">
                       <div className="flex-shrink-0">
-                        <div className="w-16 h-16 glass-card rounded-full flex items-center justify-center">
-                          <span className="text-lg font-semibold text-gray-700">
-                            {testimonial.avatar}
-                          </span>
+                        <div className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg" style={{background: 'linear-gradient(135deg, #6366f1 0%, #06b6d4 100%)'}}>
+                          {testimonial.avatar}
                         </div>
                       </div>
-                      
                       <div className="flex-1">
                         <div className="flex items-center space-x-1 mb-4">
                           {[...Array(testimonial.rating)].map((_, i) => (
-                            <span key={i} className="text-yellow-400">★</span>
+                            <span key={i} className="text-yellow-400 text-xl">★</span>
                           ))}
                         </div>
-                        
-                        <blockquote className="text-lg font-light text-gray-700 mb-6 leading-relaxed">
+                        <blockquote className="text-xl font-light text-gray-800 mb-8 leading-relaxed">
                           "{testimonial.content}"
                         </blockquote>
-                        
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="font-medium text-gray-900">
+                            <p className="font-semibold text-gray-900 text-lg">
                               {testimonial.name}
                             </p>
                             <p className="text-sm font-light text-gray-500">
                               {testimonial.role} at {testimonial.company}
                             </p>
                           </div>
-                          
                           <div className="text-right">
-                            <div className="inline-flex items-center space-x-2 px-4 py-2 glass-card rounded-full">
+                            <div className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-100/70 rounded-full shadow">
                               <span className="text-blue-500">💬</span>
                               <span className="text-sm font-light text-gray-600">
                                 {testimonial.result}

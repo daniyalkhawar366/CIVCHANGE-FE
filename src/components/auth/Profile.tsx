@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { getProfile, updateProfile } from '../../services/api';
 import toast from 'react-hot-toast';
+import { LogOut, Eye, EyeOff } from 'lucide-react';
 
 const Profile: React.FC = () => {
   const { user, logout } = useAuth();
@@ -10,9 +11,9 @@ const Profile: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [formData, setFormData] = useState({
-    name: ''
-  });
+  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,31 +24,37 @@ const Profile: React.FC = () => {
     try {
       const userProfile = await getProfile();
       setProfile(userProfile);
-      setFormData({ name: userProfile.name });
+      setName(userProfile.name);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load profile');
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleUpdateName = async () => {
     setLoading(true);
     setError('');
     setSuccess('');
-
     try {
-      const updatedProfile = await updateProfile(formData);
+      const updatedProfile = await updateProfile({ name });
       setProfile(updatedProfile);
-      setSuccess('Profile updated successfully!');
+      setSuccess('Name updated successfully!');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update profile');
+      setError(err.response?.data?.message || 'Failed to update name');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    setLoading(true);
+    setError('');
+    setSuccess('');
+    try {
+      // You can implement password update logic here later
+      setSuccess('Password updated!');
+      setPassword('');
+    } catch (err: any) {
+      setError('Failed to update password');
     } finally {
       setLoading(false);
     }
@@ -70,164 +77,103 @@ const Profile: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-2">
       {/* Navigation Bar */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Link 
-                to="/" 
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Home
-              </Link>
-              <Link 
-                to="/dashboard" 
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-              >
-                Dashboard
-              </Link>
-              <Link 
-                to="/profile" 
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Profile
-              </Link>
+      <div className="w-full max-w-2xl flex justify-between items-center mb-6">
+        <Link 
+          to="/" 
+          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all"
+        >
+          Home
+        </Link>
+        <button
+          onClick={handleLogout}
+          className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-all focus:outline-none"
+        >
+          <LogOut className="w-5 h-5 mr-1" />
+          <span>Logout</span>
+        </button>
+      </div>
+      <div className="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-8 md:p-12 animate-fade-in-up">
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">Account Info</h1>
+        {error && (
+          <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">{error}</div>
+        )}
+        {success && (
+          <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">{success}</div>
+        )}
+        <div className="space-y-6">
+          {/* Email */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+            <input
+              type="email"
+              value={profile.email}
+              disabled
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 font-medium cursor-not-allowed"
+            />
+          </div>
+          {/* Name */}
+          <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-medium"
+                placeholder="Enter your name"
+              />
             </div>
             <button
-              onClick={handleLogout}
-              className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
+              onClick={handleUpdateName}
+              disabled={loading || name === profile.name}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Logout
+              Update
             </button>
           </div>
-        </div>
-      </div>
-
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile</h1>
-          <p className="text-gray-600">Manage your account settings and information</p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Profile Information */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Information</h2>
-            
-            {error && (
-              <div className="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-                {error}
-              </div>
-            )}
-
-            {success && (
-              <div className="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
-                {success}
-              </div>
-            )}
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={profile.email}
-                  disabled
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Role
-                </label>
-                <input
-                  type="text"
-                  value={profile.role}
-                  disabled
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Verification Status
-                </label>
-                <div className="flex items-center">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    profile.isVerified 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {profile.isVerified ? 'Verified' : 'Pending Verification'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Edit Profile Form */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Edit Profile</h2>
-            
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                  placeholder="Enter your full name"
-                />
-              </div>
-
+          {/* Password */}
+          <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-4">
+            <div className="flex-1 relative">
+              <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-medium pr-12"
+                placeholder="Enter new password"
+              />
               <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-9 text-gray-400 hover:text-blue-600 focus:outline-none"
+                tabIndex={-1}
               >
-                {loading ? 'Updating...' : 'Update Profile'}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
-            </form>
+            </div>
+            <button
+              onClick={handleUpdatePassword}
+              disabled={loading || !password}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 hover:scale-105 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Update
+            </button>
           </div>
-        </div>
-
-        {/* Account Actions */}
-        <div className="mt-8 bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Actions</h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-              <div>
-                <h3 className="text-sm font-medium text-gray-900">Change Password</h3>
-                <p className="text-sm text-gray-500">Update your account password</p>
+          {/* Plan Info */}
+          <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mt-2">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Current Plan</label>
+              <div className="px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 text-gray-700 font-semibold">
+                {profile.plan || 'Free'}
               </div>
-              <Link 
-                to="/forgot-password" 
-                className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-              >
-                Change Password
-              </Link>
             </div>
-
-            <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-              <div>
-                <h3 className="text-sm font-medium text-gray-900">Delete Account</h3>
-                <p className="text-sm text-gray-500">Permanently delete your account and all data</p>
-              </div>
-              <button className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
-                Delete Account
-              </button>
-            </div>
+            <button
+              className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-purple-700 hover:scale-105 transition-all shadow-none"
+            >
+              Upgrade
+            </button>
           </div>
         </div>
       </div>

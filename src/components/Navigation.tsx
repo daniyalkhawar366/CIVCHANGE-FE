@@ -109,13 +109,6 @@ const Navigation: React.FC = () => {
                   {showUserMenu && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
                       <Link
-                        to="/dashboard"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        onClick={() => setShowUserMenu(false)}
-                      >
-                        Dashboard
-                      </Link>
-                      <Link
                         to="/profile"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setShowUserMenu(false)}
@@ -216,13 +209,6 @@ const Navigation: React.FC = () => {
                       </span>
                       <span className="text-gray-700 font-light">{user?.name}</span>
                     </div>
-                    <Link
-                      to="/dashboard"
-                      className="block text-lg font-light text-gray-700 hover:text-blue-600 transition-colors"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      Dashboard
-                    </Link>
                     <Link
                       to="/profile"
                       className="block text-lg font-light text-gray-700 hover:text-blue-600 transition-colors"

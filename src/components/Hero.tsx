@@ -57,12 +57,12 @@ const Hero: React.FC = () => {
       </div>
 
       {/* Floating Elements */}
-      <div className="absolute top-1/4 right-10 w-20 h-20 glass-card rounded-full flex items-center justify-center">
+      <div className="absolute top-1/4 right-10 w-20 h-20 glass-card rounded-full flex items-center justify-center animate-float-slow">
         <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-400 rounded-lg"></div>
       </div>
 
-      <div className="absolute bottom-1/4 left-10 w-16 h-16 glass-card rounded-full flex items-center justify-center">
-        <div className="w-6 h-6 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg"></div>
+      <div className="absolute bottom-1/4 left-10 w-16 h-16 glass-card rounded-full flex items-center justify-center animate-float-slow-alt">
+        <div className="w-6 h-6 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full"></div>
       </div>
     </section>
   );

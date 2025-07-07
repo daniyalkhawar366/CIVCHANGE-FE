@@ -1,76 +1,33 @@
 import React from 'react';
-import { Mail, Twitter, Linkedin, Github } from 'lucide-react';
+import { Mail } from 'lucide-react';
+import { FaInstagram, FaTwitter } from 'react-icons/fa';
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid md:grid-cols-4 gap-8">
-          {/* Brand */}
-          <div className="col-span-1">
-            <h3 className="text-2xl font-bold mb-4">
-              C<span className="text-teal-400">IV</span>CHANGE
-            </h3>
-            <p className="text-gray-400 mb-6">
-              Transform your Canva designs into fully editable Photoshop files with our advanced conversion technology.
-            </p>
-            <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Linkedin className="w-5 h-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Github className="w-5 h-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Mail className="w-5 h-5" />
-              </a>
-            </div>
-          </div>
-
-          {/* Product */}
-          <div>
-            <h4 className="font-semibold mb-4">Product</h4>
-            <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">How It Works</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">API</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
-            </ul>
-          </div>
-
-          {/* Company */}
-          <div>
-            <h4 className="font-semibold mb-4">Company</h4>
-            <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Press</a></li>
-            </ul>
-          </div>
-
-          {/* Support */}
-          <div>
-            <h4 className="font-semibold mb-4">Support</h4>
-            <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Status</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-            </ul>
-          </div>
+    <footer className="bg-gray-900 text-white py-6">
+      <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        {/* Brand and tagline */}
+        <div className="flex flex-col items-start">
+          <h3 className="text-xl font-bold">
+            C<span className="text-teal-400">IV</span>CHANGE
+          </h3>
+          <span className="text-xs text-gray-400 mt-1">Canva to Photoshop PSD Converter</span>
         </div>
-
-        <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 text-sm">
-            © 2024 CIVCHANGE. All rights reserved.
-          </p>
-          <p className="text-gray-400 text-sm mt-4 md:mt-0">
-            Built with ❤️ for designers worldwide
-          </p>
+        {/* Social icons */}
+        <div className="flex space-x-6 justify-center">
+          <a href="https://www.instagram.com/albytechco/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label="Instagram">
+            <FaInstagram className="w-6 h-6" />
+          </a>
+          <a href="https://x.com/Dani91160" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" aria-label="X">
+            <FaTwitter className="w-6 h-6" />
+          </a>
+          <a href="/contact" className="text-gray-400 hover:text-white transition-colors" aria-label="Contact Us">
+            <Mail className="w-6 h-6" />
+          </a>
+        </div>
+        {/* Copyright */}
+        <div className="text-xs text-gray-400 text-right">
+          © 2025 C<span className="text-teal-400">IV</span>CHANGE. All rights reserved.
         </div>
       </div>
     </footer>

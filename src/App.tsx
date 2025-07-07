@@ -6,7 +6,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Navigation from './components/Navigation';
 import LandingPage from './components/LandingPage';
 import Footer from './components/Footer';
-import Dashboard from './components/Dashboard';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import VerifyEmail from './components/auth/VerifyEmail';
@@ -14,6 +13,7 @@ import ForgotPassword from './components/auth/ForgotPassword';
 import ResetPassword from './components/auth/ResetPassword';
 import Profile from './components/auth/Profile';
 import Admin from './components/Admin';
+import Contact from './components/Contact';
 
 function App() {
   return (
@@ -37,6 +37,13 @@ function App() {
               <>
                 <Navigation />
                 <LandingPage />
+                <Footer />
+              </>
+            } />
+            <Route path="/contact" element={
+              <>
+                <Navigation />
+                <Contact />
                 <Footer />
               </>
             } />
@@ -73,12 +80,6 @@ function App() {
             } />
             
             {/* Protected Routes */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            
             <Route path="/profile" element={
               <ProtectedRoute>
                 <Profile />

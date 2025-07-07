@@ -2,69 +2,45 @@ import React from 'react';
 
 const planData = [
   {
-    name: 'Free',
-    price: '$0',
-    description: 'Get started with basic conversions',
+    name: 'Starter',
+    price: '$10/mo',
+    description: '20 conversions',
     features: [
-      { label: 'Up to 3 conversions per month', available: true },
+      { label: '20 conversions', available: true },
       { label: 'Layer preservation', available: true },
-      { label: 'Standard processing speed', available: true },
-      { label: 'Font support', available: false },
-      { label: 'Priority support', available: false },
-      { label: 'Dedicated account manager', available: false },
-      { label: 'Custom integrations', available: false },
-      { label: 'SLA & onboarding', available: false },
     ],
-    button: 'Get Started',
+    button: 'Choose Starter',
     recommended: false,
   },
   {
     name: 'Pro',
-    price: '$25/mo',
-    description: 'For professionals and agencies',
+    price: '$29/mo',
+    description: '50 conversions',
     features: [
-      { label: 'Unlimited conversions', available: true },
+      { label: '50 conversions', available: true },
       { label: 'Layer preservation', available: true },
-      { label: 'Font support', available: true },
-      { label: 'Faster processing', available: true },
-      { label: 'Priority support', available: true },
-      { label: 'Dedicated account manager', available: false },
-      { label: 'Custom integrations', available: false },
-      { label: 'SLA & onboarding', available: false },
     ],
-    button: 'Get Started',
+    button: 'Choose Pro',
     recommended: true,
   },
   {
     name: 'Business',
-    price: '$50/mo',
-    description: 'For teams and power users',
+    price: '$99/mo',
+    description: '200 conversions',
     features: [
-      { label: 'Unlimited conversions', available: true },
+      { label: '200 conversions', available: true },
       { label: 'Layer preservation', available: true },
-      { label: 'Font support', available: true },
-      { label: 'Fastest processing', available: true },
-      { label: 'Priority support', available: true },
-      { label: 'Dedicated account manager', available: true },
-      { label: 'Custom integrations', available: true },
-      { label: 'SLA & onboarding', available: false },
     ],
-    button: 'Get Started',
+    button: 'Choose Business',
     recommended: false,
   },
   {
     name: 'Enterprise',
     price: 'Contact Us',
-    description: 'Custom solutions for large teams',
+    description: 'Custom conversions and solutions for large teams',
     features: [
-      { label: 'Unlimited conversions', available: true },
+      { label: 'Custom conversions', available: true },
       { label: 'Layer preservation', available: true },
-      { label: 'Font support', available: true },
-      { label: 'Fastest processing', available: true },
-      { label: 'Priority support', available: true },
-      { label: 'Dedicated account manager', available: true },
-      { label: 'Custom integrations', available: true },
-      { label: 'SLA & onboarding', available: true },
     ],
     button: 'Contact Sales',
     recommended: false,
@@ -72,22 +48,7 @@ const planData = [
 ];
 
 function getRedFeatures(planIdx: number) {
-  // Only show as red if a higher tier offers it
-  const redFeatures: string[] = [];
-  for (let i = 0; i < planData[planIdx].features.length; i++) {
-    if (!planData[planIdx].features[i].available) {
-      // Check if any higher plan has this feature
-      let higherHas = false;
-      for (let j = planIdx + 1; j < planData.length; j++) {
-        if (planData[j].features[i].available) {
-          higherHas = true;
-          break;
-        }
-      }
-      if (higherHas) redFeatures.push(planData[planIdx].features[i].label);
-    }
-  }
-  return redFeatures;
+  return [];
 }
 
 const Pricing: React.FC = () => (
@@ -108,7 +69,7 @@ const Pricing: React.FC = () => (
             return (
               <div
                 key={plan.name}
-                className={`glass-card p-8 flex flex-col items-start text-left relative min-h-[540px] transition-all duration-300 ${plan.recommended ? 'border-2 border-blue-500 shadow-2xl scale-105 z-10' : ''} hover:border-2 hover:border-blue-500`}
+                className={`glass-card p-8 flex flex-col items-start text-left relative min-h-[340px] transition-all duration-300 ${plan.recommended ? 'border-2 border-blue-500 shadow-2xl scale-105 z-10' : ''} hover:border-2 hover:border-blue-500`}
                 style={{height: '100%'}}
               >
                 {plan.recommended && (
@@ -117,9 +78,8 @@ const Pricing: React.FC = () => (
                   </div>
                 )}
                 <h3 className="text-2xl font-light text-gray-900 mb-2">{plan.name}</h3>
-                <div className="text-4xl font-bold text-blue-600 mb-2">{plan.price}</div>
-                <p className="text-gray-600 font-light mb-6 text-left">{plan.description}</p>
-                <ul className="mb-4 space-y-2 w-full">
+                <div className="text-4xl font-bold text-blue-600 mb-12">{plan.price}</div>
+                <ul className="mb-2 space-y-2 w-full">
                   {green.map(f => (
                     <li key={f.label} className="flex items-center space-x-2">
                       <span className="text-green-500">✔</span>
@@ -128,7 +88,7 @@ const Pricing: React.FC = () => (
                   ))}
                 </ul>
                 {redLabels.length > 0 && (
-                  <ul className="mb-8 space-y-2 w-full">
+                  <ul className="mb-2 space-y-2 w-full">
                     {redLabels.map(label => (
                       <li key={label} className="flex items-center space-x-2">
                         <span className="text-red-400">✖</span>
@@ -137,7 +97,7 @@ const Pricing: React.FC = () => (
                     ))}
                   </ul>
                 )}
-                <button className={`w-full mt-auto px-6 py-3 rounded-lg font-medium transition-all duration-300 ${
+                <button className={`w-full mt-auto px-6 py-2 rounded-lg font-medium transition-all duration-300 ${
                   plan.recommended 
                     ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg' 
                     : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
