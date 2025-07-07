@@ -7,11 +7,12 @@ import { uploadFile, startConversion, getJobStatus } from '../services/api';
 
 interface ConversionJob {
   jobId: string;
-  status: 'pending' | 'starting' | 'loading_photopea' | 'photopea_loaded' | 'pdf_loaded' | 'pdf_processed' | 'psd_exported' | 'completed' | 'error';
+  status: 'pending' | 'starting' | 'loading_photopea' | 'photopea_loaded' | 'pdf_loaded' | 'pdf_processed' | 'psd_exported' | 'completed' | 'completed_with_photopea' | 'completed_with_fallback' | 'error';
   progress: number;
   fileName?: string;
   downloadUrl?: string;
   error?: string;
+  warning?: string;
 }
 
 const Converter: React.FC = () => {
@@ -40,7 +41,7 @@ const Converter: React.FC = () => {
       console.log('Conversion progress:', data);
       setCurrentJob(data);
       
-      if (data.status === 'completed') {
+      if (data.status === 'completed' || data.status === 'completed_with_photopea' || data.status === 'completed_with_fallback') {
         setIsConverting(false);
         toast.success('Conversion completed! Your PSD file is ready for download.');
       } else if (data.status === 'error') {
@@ -116,28 +117,35 @@ const Converter: React.FC = () => {
     switch (status) {
       case 'starting':
         return 'Initializing conversion...';
-      case 'loading_photopea':
-        return 'Loading Photopea...';
-      case 'photopea_loaded':
-        return 'Photopea loaded successfully';
-      case 'pdf_loaded':
-        return 'PDF file loaded';
-      case 'pdf_processed':
-        return 'Processing PDF layers...';
-      case 'psd_exported':
-        return 'Exporting to PSD...';
+      case 'initializing_photopea':
+        return 'Initializing Photopea...';
+      case 'photopea_initialized':
+        return 'Photopea initialized successfully';
+      case 'Preparing PDF for conversion...':
+        return 'Preparing PDF for conversion...';
+      case 'Converting PDF to PSD...':
+        return 'Converting PDF to PSD...';
+      case 'PSD generated, saving file...':
+        return 'PSD generated, saving file...';
+      case 'PSD file saved successfully':
+        return 'PSD file saved successfully';
       case 'completed':
+      case 'completed_with_photopea':
         return 'Conversion completed!';
+      case 'completed_with_fallback':
+        return 'Conversion completed (basic conversion)';
       case 'error':
         return 'Conversion failed';
       default:
-        return 'Ready to convert';
+        return status || 'Ready to convert';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
+      case 'completed_with_photopea':
+      case 'completed_with_fallback':
         return <CheckCircle className="w-5 h-5 text-green-500" />;
       case 'error':
         return <AlertCircle className="w-5 h-5 text-red-500" />;
@@ -210,6 +218,11 @@ const Converter: React.FC = () => {
                     <p className="text-sm text-gray-600">
                       {getStatusMessage(currentJob.status)}
                     </p>
+                    {currentJob.warning && (
+                      <p className="text-sm text-yellow-600 mt-1">
+                        ⚠ {currentJob.warning}
+                      </p>
+                    )}
                   </div>
                 </div>
                 {currentJob.progress !== undefined && (
@@ -228,7 +241,7 @@ const Converter: React.FC = () => {
                 </div>
               )}
 
-              {currentJob.status === 'completed' && currentJob.downloadUrl && (
+              {(currentJob.status === 'completed' || currentJob.status === 'completed_with_photopea' || currentJob.status === 'completed_with_fallback') && currentJob.downloadUrl && (
                 <div className="flex items-center justify-center space-x-4">
                   <button
                     onClick={handleDownload}
@@ -276,4 +289,4 @@ const Converter: React.FC = () => {
   );
 };
 
-export default Converter; 
+export default Converter;
