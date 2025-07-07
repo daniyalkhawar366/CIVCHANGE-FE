@@ -144,6 +144,11 @@ export const updateProfile = async (data: { name: string }): Promise<UserProfile
   return response.data;
 };
 
+export const changePassword = async (currentPassword: string, newPassword: string): Promise<{ message: string }> => {
+  const response = await api.put('/auth/change-password', { currentPassword, newPassword });
+  return response.data;
+};
+
 // File conversion API functions
 export const uploadFile = async (file: File): Promise<UploadResponse> => {
   const formData = new FormData();

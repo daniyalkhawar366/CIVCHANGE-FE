@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { getProfile, updateProfile } from '../../services/api';
+import { getProfile, updateProfile, changePassword } from '../../services/api';
 import toast from 'react-hot-toast';
 import { LogOut, Eye, EyeOff, Loader2 } from 'lucide-react';
 
@@ -61,12 +61,16 @@ const Profile: React.FC = () => {
       return;
     }
     setLoading(true);
-    setTimeout(() => { // Simulate async
-      setLoading(false);
+    try {
+      await changePassword(currentPassword, newPassword);
       setCurrentPassword('');
       setNewPassword('');
-      toast.success('Password updated successfully!');
-    }, 1200);
+      toast.success('Password updated successfully.');
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to update password.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleLogout = () => {
