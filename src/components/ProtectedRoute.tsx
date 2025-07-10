@@ -34,12 +34,12 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // If admin access is required but user is not admin
   if (requireAdmin && !isAdmin) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   // If user is authenticated but trying to access auth pages
   if (!requireAuth && isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
