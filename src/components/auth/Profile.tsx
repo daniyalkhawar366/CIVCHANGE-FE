@@ -109,6 +109,10 @@ const Profile: React.FC = () => {
 
   const getHigherPlans = (current: string) => {
     const idx = planOrder.indexOf((current || 'free').toLowerCase());
+    if ((current || 'free').toLowerCase() === 'free') {
+      // If free, all paid plans are available
+      return planOrder.slice(0);
+    }
     return planOrder.slice(idx + 1);
   };
 
@@ -134,7 +138,7 @@ const Profile: React.FC = () => {
     try {
       await cancelSubscription();
       toast.success('Subscription cancellation requested.');
-      fetchAccount();
+      fetchAccount(); // Refresh account info after cancel
     } catch (err) {
       toast.error('Failed to cancel subscription.');
     } finally {
@@ -288,7 +292,7 @@ const Profile: React.FC = () => {
               {account.pendingPlan && (
                 <div className="text-gray-800 text-lg mb-1">Pending Plan Change: <span className="font-semibold">{account.pendingPlan}</span></div>
               )}
-              {account.pendingPlan && account.pendingPlan !== account.plan && (
+              {account.pendingPlan && account.pendingPlan !== account.plan && account.plan.toLowerCase() !== 'free' && (
                 <div className="mt-2 p-2 bg-yellow-100 text-yellow-800 rounded">A downgrade is pending and will take effect next month.</div>
               )}
               <div className="flex gap-4 mt-4">
