@@ -110,8 +110,8 @@ const Profile: React.FC = () => {
   const getHigherPlans = (current: string) => {
     const idx = planOrder.indexOf((current || 'free').toLowerCase());
     if ((current || 'free').toLowerCase() === 'free') {
-      // If free, all paid plans are available
-      return planOrder.slice(0);
+      // If free, all paid plans are available (exclude 'free' itself)
+      return planOrder.slice(1);
     }
     return planOrder.slice(idx + 1);
   };
@@ -135,6 +135,7 @@ const Profile: React.FC = () => {
   };
 
   const handleCancelSubscription = async () => {
+    if (!window.confirm('Are you sure you want to cancel your subscription?')) return;
     setLoading(true);
     try {
       await cancelSubscription();
