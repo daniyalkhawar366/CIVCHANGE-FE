@@ -14,6 +14,8 @@ import ResetPassword from './components/auth/ResetPassword';
 import Profile from './components/auth/Profile';
 import Admin from './components/Admin';
 import Contact from './components/Contact';
+import ThankYou from './components/ThankYou';
+import NotFound from './components/NotFound';
 
 function AppRoutes() {
   const { isAdmin } = useAuth();
@@ -76,8 +78,10 @@ function AppRoutes() {
               <Profile />
             </ProtectedRoute>
           } />
+          {/* Thank You Page after payment */}
+          <Route path="/account" element={<ThankYou />} />
           {/* Catch all route */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFound />} />
         </>
       )}
     </Routes>

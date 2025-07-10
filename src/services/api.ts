@@ -170,6 +170,12 @@ export const getJobStatus = async (jobId: string): Promise<ConversionJob> => {
   return response.data;
 };
 
+// Stripe Checkout API
+export const createCheckoutSession = async (plan: 'basic' | 'pro' | 'premium'): Promise<{ url: string }> => {
+  const response = await api.post<{ url: string }>('/api/payments/create-checkout', { plan });
+  return response.data;
+};
+
 // Admin User Management interfaces
 export interface AdminUser {
   id: string;

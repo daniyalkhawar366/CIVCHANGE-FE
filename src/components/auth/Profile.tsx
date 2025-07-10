@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { getProfile, updateProfile, changePassword } from '../../services/api';
+import { getProfile, updateProfile, changePassword, createCheckoutSession } from '../../services/api';
 import toast from 'react-hot-toast';
 import { LogOut, Eye, EyeOff, Loader2 } from 'lucide-react';
 
@@ -18,6 +18,8 @@ const Profile: React.FC = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const navigate = useNavigate();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeLoading, setUpgradeLoading] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -76,6 +78,20 @@ const Profile: React.FC = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const handleUpgrade = async (plan: 'basic' | 'pro' | 'premium') => {
+    setUpgradeLoading(true);
+    try {
+      // You can swap to a dedicated upgrade API if needed
+      const { url } = await createCheckoutSession(plan);
+      window.location.href = url;
+    } catch (err) {
+      toast.error('Failed to start upgrade. Please try again.');
+    } finally {
+      setUpgradeLoading(false);
+      setShowUpgradeModal(false);
+    }
   };
 
   if (!profile) {
@@ -221,13 +237,52 @@ const Profile: React.FC = () => {
               </div>
               <button
                 className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-bold text-lg shadow hover:from-blue-600 hover:to-purple-700 hover:scale-105 transition-all"
+                onClick={() => setShowUpgradeModal(true)}
+                disabled={upgradeLoading}
               >
-                Upgrade
+                {upgradeLoading ? 'Redirecting...' : 'Upgrade'}
               </button>
             </div>
           </div>
         </div>
       </div>
+      {showUpgradeModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+            <h3 className="text-xl font-bold mb-4">Choose a plan to upgrade</h3>
+            <div className="space-y-4">
+              <button
+                className="w-full px-6 py-3 rounded-lg bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition"
+                onClick={() => handleUpgrade('basic')}
+                disabled={upgradeLoading}
+              >
+                Starter ($10)
+              </button>
+              <button
+                className="w-full px-6 py-3 rounded-lg bg-blue-200 text-blue-900 font-semibold hover:bg-blue-300 transition"
+                onClick={() => handleUpgrade('pro')}
+                disabled={upgradeLoading}
+              >
+                Pro ($29)
+              </button>
+              <button
+                className="w-full px-6 py-3 rounded-lg bg-purple-200 text-purple-900 font-semibold hover:bg-purple-300 transition"
+                onClick={() => handleUpgrade('premium')}
+                disabled={upgradeLoading}
+              >
+                Business ($99)
+              </button>
+            </div>
+            <button
+              className="mt-6 w-full px-6 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition"
+              onClick={() => setShowUpgradeModal(false)}
+              disabled={upgradeLoading}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
