@@ -284,6 +284,7 @@ const Profile: React.FC = () => {
                   className="px-6 py-2 bg-red-500 text-white rounded-lg font-semibold shadow hover:bg-red-600 transition-all"
                   onClick={handleCancelSubscription}
                   disabled={loading}
+                  style={{ display: (account.plan && account.plan.toLowerCase() === 'free') ? 'none' : undefined }}
                 >
                   Cancel Subscription
                 </button>
