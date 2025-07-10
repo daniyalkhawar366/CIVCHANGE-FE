@@ -98,13 +98,31 @@ const Profile: React.FC = () => {
     navigate('/');
   };
 
+  // Plan order for upgrade logic
+  const planOrder = ['free', 'basic', 'pro', 'premium'];
+  const planLabels: Record<string, string> = {
+    free: 'Free',
+    basic: 'Starter ($10)',
+    pro: 'Pro ($29)',
+    premium: 'Business ($99)'
+  };
+
+  const getHigherPlans = (current: string) => {
+    const idx = planOrder.indexOf((current || 'free').toLowerCase());
+    return planOrder.slice(idx + 1);
+  };
+
   const handleUpgradePlan = async (plan: 'basic' | 'pro' | 'premium') => {
     setUpgradeLoading(true);
     try {
       const { url } = await upgradeSubscription(plan);
       window.location.href = url;
-    } catch (err) {
-      toast.error('Failed to start upgrade. Please try again.');
+    } catch (err: any) {
+      if (err.response && err.response.status === 403 && err.response.data?.message) {
+        toast.error(err.response.data.message);
+      } else {
+        toast.error('Failed to start upgrade. Please try again.');
+      }
     } finally {
       setUpgradeLoading(false);
       setShowUpgradeModal(false);
@@ -262,6 +280,7 @@ const Profile: React.FC = () => {
               <h2 className="text-xl font-bold text-blue-800 mb-2">Subscription Details</h2>
               <div className="text-gray-800 text-lg mb-1">Current Plan: <span className="font-semibold">{account.plan || 'Free'}</span></div>
               <div className="text-gray-800 text-lg mb-1">Conversions Remaining: <span className="font-semibold">{account.conversionsLeft ?? '-'}</span></div>
+              <div className="text-gray-600 text-sm mb-2">If you downgrade (cancel + repurchase), new conversions will be added to your existing balance.</div>
               <div className="text-gray-800 text-lg mb-1">Status: <span className="font-semibold">{account.subscriptionStatus || 'N/A'}</span></div>
               {account.subscriptionEndDate && (
                 <div className="text-gray-800 text-lg mb-1">Subscription Ends: <span className="font-semibold">{new Date(account.subscriptionEndDate).toLocaleDateString()}</span></div>
@@ -298,27 +317,19 @@ const Profile: React.FC = () => {
           <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
             <h3 className="text-xl font-bold mb-4">Choose a plan to upgrade</h3>
             <div className="space-y-4">
-              <button
-                className="w-full px-6 py-3 rounded-lg bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition"
-                onClick={() => handleUpgradePlan('basic')}
-                disabled={upgradeLoading}
-              >
-                Starter ($10)
-              </button>
-              <button
-                className="w-full px-6 py-3 rounded-lg bg-blue-200 text-blue-900 font-semibold hover:bg-blue-300 transition"
-                onClick={() => handleUpgradePlan('pro')}
-                disabled={upgradeLoading}
-              >
-                Pro ($29)
-              </button>
-              <button
-                className="w-full px-6 py-3 rounded-lg bg-purple-200 text-purple-900 font-semibold hover:bg-purple-300 transition"
-                onClick={() => handleUpgradePlan('premium')}
-                disabled={upgradeLoading}
-              >
-                Business ($99)
-              </button>
+              {getHigherPlans(account?.plan).map((plan) => (
+                <button
+                  key={plan}
+                  className={`w-full px-6 py-3 rounded-lg font-semibold transition ${plan === 'basic' ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : plan === 'pro' ? 'bg-blue-200 text-blue-900 hover:bg-blue-300' : 'bg-purple-200 text-purple-900 hover:bg-purple-300'}`}
+                  onClick={() => handleUpgradePlan(plan as 'basic' | 'pro' | 'premium')}
+                  disabled={upgradeLoading}
+                >
+                  {planLabels[plan]}
+                </button>
+              ))}
+              {getHigherPlans(account?.plan).length === 0 && (
+                <div className="text-gray-500 text-center">No higher plans available to upgrade.</div>
+              )}
             </div>
             <button
               className="mt-6 w-full px-6 py-2 rounded-lg bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition"
