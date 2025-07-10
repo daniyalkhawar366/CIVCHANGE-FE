@@ -27,10 +27,10 @@ const Profile: React.FC = () => {
     fetchAccount();
   }, []);
 
-  // Refresh account info after payment success
+  // After payment (on /account?success=1), refresh account info on mount
   useEffect(() => {
     if (window.location.search.includes('success=1')) {
-      fetchAccount();
+      fetchAccount(); // Refresh and show updated conversions left
     }
   }, []);
 
@@ -124,12 +124,13 @@ const Profile: React.FC = () => {
     } catch (err: any) {
       if (err.response && err.response.status === 403 && err.response.data?.message) {
         toast.error(err.response.data.message);
+        setShowUpgradeModal(false);
+        fetchAccount(); // Refresh account info and show upgrade options
       } else {
         toast.error('Failed to start upgrade. Please try again.');
       }
     } finally {
       setUpgradeLoading(false);
-      setShowUpgradeModal(false);
     }
   };
 
@@ -303,14 +304,15 @@ const Profile: React.FC = () => {
                 >
                   {upgradeLoading ? 'Redirecting...' : 'Upgrade'}
                 </button>
-                <button
-                  className="px-6 py-2 bg-red-500 text-white rounded-lg font-semibold shadow hover:bg-red-600 transition-all"
-                  onClick={handleCancelSubscription}
-                  disabled={loading}
-                  style={{ display: (account.plan && account.plan.toLowerCase() === 'free') ? 'none' : undefined }}
-                >
-                  Cancel Subscription
-                </button>
+                {!(account.plan && account.plan.toLowerCase() === 'free') && (
+                  <button
+                    className="px-6 py-2 bg-red-500 text-white rounded-lg font-semibold shadow hover:bg-red-600 transition-all"
+                    onClick={handleCancelSubscription}
+                    disabled={loading}
+                  >
+                    Cancel Subscription
+                  </button>
+                )}
               </div>
             </div>
           )}
