@@ -291,24 +291,6 @@ const Profile: React.FC = () => {
               </div>
             </div>
           )}
-          {/* Plan Info */}
-          <div>
-            <h2 className="text-lg font-bold text-gray-800 mb-3">Plan</h2>
-            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mt-2">
-              <div className="flex-1">
-                <div className="px-5 py-4 border border-gray-200 rounded-xl bg-gray-50 text-gray-700 font-bold text-lg">
-                  {profile.plan || 'Free'}
-                </div>
-              </div>
-              <button
-                className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-bold text-lg shadow hover:from-blue-600 hover:to-purple-700 hover:scale-105 transition-all"
-                onClick={() => setShowUpgradeModal(true)}
-                disabled={upgradeLoading}
-              >
-                {upgradeLoading ? 'Redirecting...' : 'Upgrade'}
-              </button>
-            </div>
-          </div>
         </div>
       </div>
       {showUpgradeModal && (
