@@ -2,7 +2,7 @@ import React from 'react';
 import { createCheckoutSession, getAccountInfo } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const planData = [
   {
@@ -64,9 +64,27 @@ const planToApiName: Record<string, 'basic' | 'pro' | 'premium'> = {
 const Pricing: React.FC = () => {
   const { isAuthenticated, user, loading } = useAuth();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [account, setAccount] = useState<any>(null);
+  const [accountLoading, setAccountLoading] = useState(true);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      setAccountLoading(true);
+      getAccountInfo().then(data => {
+        setAccount(data);
+      }).finally(() => setAccountLoading(false));
+    }
+  }, [isAuthenticated]);
 
   // Debug logs
   console.log('Pricing: isAuthenticated:', isAuthenticated, 'user:', user, 'loading:', loading);
+
+  // Plan order for upgrade logic
+  const planOrder = ['basic', 'pro', 'premium'];
+  const getHigherPlans = (current: string) => {
+    const idx = planOrder.indexOf((current || 'basic').toLowerCase());
+    return planOrder.slice(idx + 1);
+  };
 
   const handleChoosePlan = async (planName: string, event?: React.MouseEvent<HTMLButtonElement>) => {
     if (event) event.preventDefault();
@@ -79,9 +97,28 @@ const Pricing: React.FC = () => {
       // Check subscription status
       const account = await getAccountInfo();
       if (account.subscriptionStatus === 'active') {
-        window.location.href = '/profile'; // or a dedicated upgrade page
+        // Only allow upgrade to higher plans
+        const currentIdx = planOrder.indexOf((account.plan || 'basic').toLowerCase());
+        const targetIdx = planOrder.indexOf(planToApiName[planName]);
+        if (targetIdx > currentIdx) {
+          // Try upgrade
+          try {
+            const { url } = await import('../services/api').then(m => m.upgradeSubscription(planToApiName[planName]));
+            window.location.href = url;
+          } catch (err: any) {
+            if (err.response && err.response.status === 403 && err.response.data?.message) {
+              toast.error(err.response.data.message);
+            } else {
+              toast.error('Failed to start upgrade. Please try again.');
+            }
+          }
+        } else {
+          toast.error('To downgrade, please cancel your current subscription first.');
+        }
+        setLoadingPlan(null);
         return;
       }
+      // No active subscription, allow purchase
       const apiPlan = planToApiName[planName];
       if (!apiPlan) return;
       const token = localStorage.getItem('authToken');
@@ -116,6 +153,13 @@ const Pricing: React.FC = () => {
           </p>
         </div>
         <div className="w-full">
+          {/* Show current plan and conversions if available */}
+          {isAuthenticated && !accountLoading && account && (
+            <div className="mb-8 p-4 rounded-xl bg-blue-50 border border-blue-200 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+              <div className="text-gray-800 text-lg">Current Plan: <span className="font-semibold">{account.plan || 'Free'}</span></div>
+              <div className="text-gray-800 text-lg">Conversions Left: <span className="font-semibold">{account.conversionsLeft ?? '-'}</span></div>
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {planData.map((plan, idx) => {
               const green = plan.features.filter(f => f.available);
