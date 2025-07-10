@@ -233,4 +233,28 @@ export const updateSettings = async (settings: Partial<Settings>): Promise<Setti
   return response.data;
 };
 
+// User Account & Subscription API
+export interface AccountInfo {
+  plan: string;
+  conversionsLeft: number;
+  subscriptionStatus: string;
+  subscriptionEndDate?: string;
+  pendingPlan?: string;
+}
+
+export const getAccountInfo = async (): Promise<AccountInfo> => {
+  const response = await api.get('/api/user/account');
+  return response.data;
+};
+
+export const upgradeSubscription = async (plan: 'basic' | 'pro' | 'premium'): Promise<{ url: string }> => {
+  const response = await api.post<{ url: string }>('/api/payments/upgrade', { plan });
+  return response.data;
+};
+
+export const cancelSubscription = async (): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>('/api/payments/cancel-subscription');
+  return response.data;
+};
+
 export default api; 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { createCheckoutSession } from '../services/api';
+import { createCheckoutSession, getAccountInfo } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { useState } from 'react';
@@ -70,15 +70,20 @@ const Pricing: React.FC = () => {
 
   const handleChoosePlan = async (planName: string, event?: React.MouseEvent<HTMLButtonElement>) => {
     if (event) event.preventDefault();
-    console.log('handleChoosePlan called for', planName, 'isAuthenticated:', isAuthenticated, 'user:', user, 'loading:', loading);
     if (!isAuthenticated) {
       window.location.href = '/login';
       return;
     }
-    const apiPlan = planToApiName[planName];
-    if (!apiPlan) return;
     setLoadingPlan(planName);
     try {
+      // Check subscription status
+      const account = await getAccountInfo();
+      if (account.subscriptionStatus === 'active') {
+        window.location.href = '/profile'; // or a dedicated upgrade page
+        return;
+      }
+      const apiPlan = planToApiName[planName];
+      if (!apiPlan) return;
       const token = localStorage.getItem('authToken');
       const response = await fetch('https://civchange-be-production.up.railway.app/api/payments/create-checkout', {
         method: 'POST',

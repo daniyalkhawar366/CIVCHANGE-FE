@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { getProfile, updateProfile, changePassword, createCheckoutSession } from '../../services/api';
+import { getProfile, updateProfile, changePassword, createCheckoutSession, getAccountInfo, upgradeSubscription, cancelSubscription } from '../../services/api';
 import toast from 'react-hot-toast';
 import { LogOut, Eye, EyeOff, Loader2 } from 'lucide-react';
 
@@ -20,9 +20,18 @@ const Profile: React.FC = () => {
   const navigate = useNavigate();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeLoading, setUpgradeLoading] = useState(false);
+  const [account, setAccount] = useState<any>(null);
 
   useEffect(() => {
     fetchProfile();
+    fetchAccount();
+  }, []);
+
+  // Refresh account info after payment success
+  useEffect(() => {
+    if (window.location.search.includes('success=1')) {
+      fetchAccount();
+    }
   }, []);
 
   const fetchProfile = async () => {
@@ -32,6 +41,15 @@ const Profile: React.FC = () => {
       setName(userProfile.name);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load profile');
+    }
+  };
+
+  const fetchAccount = async () => {
+    try {
+      const data = await getAccountInfo();
+      setAccount(data);
+    } catch (err: any) {
+      setError('Failed to load account info');
     }
   };
 
@@ -80,17 +98,29 @@ const Profile: React.FC = () => {
     navigate('/');
   };
 
-  const handleUpgrade = async (plan: 'basic' | 'pro' | 'premium') => {
+  const handleUpgradePlan = async (plan: 'basic' | 'pro' | 'premium') => {
     setUpgradeLoading(true);
     try {
-      // You can swap to a dedicated upgrade API if needed
-      const { url } = await createCheckoutSession(plan);
+      const { url } = await upgradeSubscription(plan);
       window.location.href = url;
     } catch (err) {
       toast.error('Failed to start upgrade. Please try again.');
     } finally {
       setUpgradeLoading(false);
       setShowUpgradeModal(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    setLoading(true);
+    try {
+      await cancelSubscription();
+      toast.success('Subscription cancellation requested.');
+      fetchAccount();
+    } catch (err) {
+      toast.error('Failed to cancel subscription.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -226,6 +256,40 @@ const Profile: React.FC = () => {
               </form>
             </div>
           </div>
+          {/* Account Subscription Info */}
+          {account && (
+            <div className="mb-8 p-6 rounded-xl bg-blue-50 border border-blue-200">
+              <h2 className="text-xl font-bold text-blue-800 mb-2">Subscription Details</h2>
+              <div className="text-gray-800 text-lg mb-1">Current Plan: <span className="font-semibold">{account.plan || 'Free'}</span></div>
+              <div className="text-gray-800 text-lg mb-1">Conversions Remaining: <span className="font-semibold">{account.conversionsLeft ?? '-'}</span></div>
+              <div className="text-gray-800 text-lg mb-1">Status: <span className="font-semibold">{account.subscriptionStatus || 'N/A'}</span></div>
+              {account.subscriptionEndDate && (
+                <div className="text-gray-800 text-lg mb-1">Subscription Ends: <span className="font-semibold">{new Date(account.subscriptionEndDate).toLocaleDateString()}</span></div>
+              )}
+              {account.pendingPlan && (
+                <div className="text-gray-800 text-lg mb-1">Pending Plan Change: <span className="font-semibold">{account.pendingPlan}</span></div>
+              )}
+              {account.pendingPlan && account.pendingPlan !== account.plan && (
+                <div className="mt-2 p-2 bg-yellow-100 text-yellow-800 rounded">A downgrade is pending and will take effect next month.</div>
+              )}
+              <div className="flex gap-4 mt-4">
+                <button
+                  className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold shadow hover:from-blue-600 hover:to-purple-700 transition-all"
+                  onClick={() => setShowUpgradeModal(true)}
+                  disabled={upgradeLoading}
+                >
+                  {upgradeLoading ? 'Redirecting...' : 'Upgrade'}
+                </button>
+                <button
+                  className="px-6 py-2 bg-red-500 text-white rounded-lg font-semibold shadow hover:bg-red-600 transition-all"
+                  onClick={handleCancelSubscription}
+                  disabled={loading}
+                >
+                  Cancel Subscription
+                </button>
+              </div>
+            </div>
+          )}
           {/* Plan Info */}
           <div>
             <h2 className="text-lg font-bold text-gray-800 mb-3">Plan</h2>
@@ -253,21 +317,21 @@ const Profile: React.FC = () => {
             <div className="space-y-4">
               <button
                 className="w-full px-6 py-3 rounded-lg bg-blue-100 text-blue-700 font-semibold hover:bg-blue-200 transition"
-                onClick={() => handleUpgrade('basic')}
+                onClick={() => handleUpgradePlan('basic')}
                 disabled={upgradeLoading}
               >
                 Starter ($10)
               </button>
               <button
                 className="w-full px-6 py-3 rounded-lg bg-blue-200 text-blue-900 font-semibold hover:bg-blue-300 transition"
-                onClick={() => handleUpgrade('pro')}
+                onClick={() => handleUpgradePlan('pro')}
                 disabled={upgradeLoading}
               >
                 Pro ($29)
               </button>
               <button
                 className="w-full px-6 py-3 rounded-lg bg-purple-200 text-purple-900 font-semibold hover:bg-purple-300 transition"
-                onClick={() => handleUpgrade('premium')}
+                onClick={() => handleUpgradePlan('premium')}
                 disabled={upgradeLoading}
               >
                 Business ($99)
