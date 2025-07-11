@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Download, FileText, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import { io, Socket } from 'socket.io-client';
@@ -17,6 +17,7 @@ interface ConversionJob {
 
 const Converter: React.FC = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
+  const socketRef = useRef<Socket | null>(null);
   const [currentJob, setCurrentJob] = useState<ConversionJob | null>(null);
   const [isConverting, setIsConverting] = useState(false);
   const [zeroConversionsError, setZeroConversionsError] = useState<string | null>(null);
@@ -28,6 +29,7 @@ const Converter: React.FC = () => {
       timeout: 20000,
     });
     setSocket(newSocket);
+    socketRef.current = newSocket;
 
     newSocket.on('connect', () => {
       console.log('WebSocket connected');
@@ -103,8 +105,8 @@ const Converter: React.FC = () => {
       await startConversion(jobId);
 
       // Emit join-job event so frontend receives progress and completion events
-      if (socket) {
-        socket.emit('join-job', jobId);
+      if (socketRef.current) {
+        socketRef.current.emit('join-job', jobId);
       }
       
       toast.success('File uploaded successfully! Starting conversion...');
