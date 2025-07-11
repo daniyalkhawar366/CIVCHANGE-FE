@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { forgotPassword } from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -7,6 +7,8 @@ const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const navigate = useNavigate();
+  const [showRegisterLink, setShowRegisterLink] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,10 +21,15 @@ const ForgotPassword: React.FC = () => {
     setLoading(true);
     try {
       await forgotPassword({ email });
-      setSubmitted(true);
-      toast.success('Password reset instructions sent to your email');
+      toast.success('OTP sent to your email');
+      navigate(`/verify-reset-otp?email=${encodeURIComponent(email)}`);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to send reset instructions');
+      if (error.response?.status === 404) {
+        toast.error('No account found with this email. Would you like to create an account?');
+        setShowRegisterLink(true);
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to send reset instructions');
+      }
     } finally {
       setLoading(false);
     }
@@ -125,6 +132,12 @@ const ForgotPassword: React.FC = () => {
             >
               Back to login
             </Link>
+            {showRegisterLink && (
+              <div className="mt-4">
+                <span className="text-gray-600">No account? </span>
+                <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500">Create one</Link>
+              </div>
+            )}
           </div>
         </div>
       </div>

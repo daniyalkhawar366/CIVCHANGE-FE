@@ -16,6 +16,7 @@ import Admin from './components/Admin';
 import Contact from './components/Contact';
 import ThankYou from './components/ThankYou';
 import NotFound from './components/NotFound';
+import VerifyResetOtp from './components/auth/VerifyResetOtp';
 
 function AppRoutes() {
   const { isAdmin } = useAuth();
@@ -70,6 +71,11 @@ function AppRoutes() {
           <Route path="/reset-password" element={
             <ProtectedRoute requireAuth={false}>
               <ResetPassword />
+            </ProtectedRoute>
+          } />
+          <Route path="/verify-reset-otp" element={
+            <ProtectedRoute requireAuth={false}>
+              <VerifyResetOtp />
             </ProtectedRoute>
           } />
           {/* Protected Routes */}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { resetPassword } from '../../services/api';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
@@ -13,6 +13,17 @@ const ResetPassword: React.FC = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const emailParam = params.get('email') || '';
+  const codeParam = params.get('code') || '';
+  React.useEffect(() => {
+    if (!emailParam || !codeParam) {
+      navigate('/forgot-password');
+    }
+    setEmail(emailParam);
+    setCode(codeParam);
+  }, [emailParam, codeParam, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,50 +72,14 @@ const ResetPassword: React.FC = () => {
           Reset your password
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600 animate-slide-up animation-delay-100">
-          Enter your email, verification code, and new password
+          Enter your new password
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md animate-slide-up animation-delay-200">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            <div className="animate-slide-up animation-delay-300">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
-                  placeholder="Enter your email"
-                />
-              </div>
-            </div>
-
-            <div className="animate-slide-up animation-delay-400">
-              <label htmlFor="code" className="block text-sm font-medium text-gray-700">
-                Verification Code
-              </label>
-              <div className="mt-1">
-                <input
-                  id="code"
-                  name="code"
-                  type="text"
-                  required
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
-                  placeholder="Enter the verification code"
-                />
-              </div>
-            </div>
-
+            {/* Only show new password fields */}
             <div className="animate-slide-up animation-delay-500">
               <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
                 New Password
@@ -131,7 +106,6 @@ const ResetPassword: React.FC = () => {
                 </button>
               </div>
             </div>
-
             <div className="animate-slide-up animation-delay-600">
               <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
                 Confirm New Password
@@ -158,7 +132,6 @@ const ResetPassword: React.FC = () => {
                 </button>
               </div>
             </div>
-
             <div className="animate-slide-up animation-delay-700">
               <button
                 type="submit"
@@ -169,7 +142,6 @@ const ResetPassword: React.FC = () => {
               </button>
             </div>
           </form>
-
           <div className="mt-6 text-center animate-slide-up animation-delay-800">
             <Link
               to="/login"

@@ -28,10 +28,10 @@ const VerifyEmail: React.FC = () => {
 
     try {
       await verifyEmail({ code: otp });
-      setSuccess('Email verified successfully! Redirecting to dashboard...');
-      // Automatically redirect to dashboard after successful verification
+      setSuccess('Email verified successfully! Please sign in.');
+      // Automatically redirect to login after successful verification
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/login');
       }, 2000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Verification failed. Please check the code and try again.');

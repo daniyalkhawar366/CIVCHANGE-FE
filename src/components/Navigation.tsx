@@ -8,6 +8,7 @@ const Navigation: React.FC = () => {
   const [showNav, setShowNav] = useState(true);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const lastScrollY = useRef(0);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
 
@@ -29,6 +30,17 @@ const Navigation: React.FC = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (!showUserMenu) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setShowUserMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showUserMenu]);
 
   const scrollToSection = (sectionId: string) => {
     const element = document.getElementById(sectionId);
@@ -95,7 +107,7 @@ const Navigation: React.FC = () => {
             {/* Auth Buttons / User Menu */}
             <div className="hidden md:flex items-center space-x-4">
               {isAuthenticated ? (
-                <div className="relative">
+                <div className="relative" ref={userMenuRef}>
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors duration-200"

@@ -257,4 +257,9 @@ export const cancelSubscription = async (): Promise<{ message: string }> => {
   return response.data;
 };
 
+export const verifyResetOtp = async (data: { email: string; code: string }): Promise<{ message: string }> => {
+  const response = await api.post<{ message: string }>('/auth/verify-reset-otp', data);
+  return response.data;
+};
+
 export default api; 
