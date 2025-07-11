@@ -19,6 +19,7 @@ const Converter: React.FC = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [currentJob, setCurrentJob] = useState<ConversionJob | null>(null);
   const [isConverting, setIsConverting] = useState(false);
+  const [zeroConversionsError, setZeroConversionsError] = useState<string | null>(null);
 
   useEffect(() => {
     // Initialize socket connection
@@ -77,6 +78,7 @@ const Converter: React.FC = () => {
     try {
       setIsConverting(true);
       setCurrentJob(null); // Reset previous job
+      setZeroConversionsError(null); // Reset error
       
       console.log('Uploading file:', file.name, 'Size:', file.size);
       
@@ -93,10 +95,24 @@ const Converter: React.FC = () => {
     } catch (error: any) {
       setIsConverting(false);
       console.error('Upload error:', error);
-      
       if (error.response) {
         console.error('Error response:', error.response.data);
-        toast.error(`Upload failed: ${error.response.data?.message || error.response.statusText}`);
+        const msg = error.response.data?.message?.toLowerCase() || '';
+        if (error.response.data?.error) {
+          setZeroConversionsError(error.response.data.error);
+          scrollToPricing();
+        } else if (
+          msg.includes('no conversions left') ||
+          (msg.includes('conversions') && msg.includes('0')) ||
+          msg.includes('out of conversions') ||
+          msg.includes('only 1 conversion allowed') ||
+          msg.includes('upgrade')
+        ) {
+          setZeroConversionsError('0 conversions left. Please upgrade.');
+          scrollToPricing();
+        } else {
+          toast.error(`Upload failed: ${error.response.data?.message || error.response.statusText}`);
+        }
       } else if (error.request) {
         toast.error('Network error: Unable to reach the server');
       } else {
@@ -171,6 +187,13 @@ const Converter: React.FC = () => {
     toast.success('Reset successful. You can now upload a new file.');
   };
 
+  const scrollToPricing = () => {
+    const section = document.getElementById('pricing');
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="bg-white rounded-lg shadow-lg p-8">
@@ -186,6 +209,11 @@ const Converter: React.FC = () => {
 
         {/* Upload Area */}
         <div className="mb-8">
+          {zeroConversionsError && (
+            <div className="mb-4 p-4 bg-red-100 border border-red-300 text-red-700 rounded text-center text-lg font-semibold">
+              {zeroConversionsError}
+            </div>
+          )}
           <div
             {...getRootProps()}
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${

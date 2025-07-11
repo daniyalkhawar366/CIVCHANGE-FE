@@ -12,7 +12,7 @@ const LandingPage: React.FC = () => {
       <Hero />
       <div className="animate-fade-in-up"><HowItWorks /></div>
       <div className="animate-fade-in-up" id="converter"><Converter /></div>
-      <div className="animate-fade-in-up"><Pricing /></div>
+      <div className="animate-fade-in-up" id="pricing"><Pricing /></div>
       <div className="animate-fade-in-up"><FAQ /></div>
       <div className="animate-fade-in-up"><Testimonials /></div>
     </div>

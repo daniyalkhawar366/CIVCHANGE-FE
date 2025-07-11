@@ -97,26 +97,22 @@ const Pricing: React.FC = () => {
       // Check subscription status
       const account = await getAccountInfo();
       if (account.subscriptionStatus === 'active') {
-        // Only allow upgrade to higher plans
         const currentIdx = planOrder.indexOf((account.plan || 'basic').toLowerCase());
         const targetIdx = planOrder.indexOf(planToApiName[planName]);
-        if (targetIdx > currentIdx) {
-          // Try upgrade
-          try {
-            const { url } = await import('../services/api').then(m => m.upgradeSubscription(planToApiName[planName]));
-            window.location.href = url;
-          } catch (err: any) {
-            if (err.response && err.response.status === 403 && err.response.data?.message) {
-              toast.error(err.response.data.message);
-            } else {
-              toast.error('Failed to start upgrade. Please try again.');
-            }
-          }
-        } else {
+        if (targetIdx === currentIdx) {
+          toast.error('You already have this plan.');
+          setLoadingPlan(null);
+          return;
+        } else if (targetIdx < currentIdx) {
           toast.error('To downgrade, please cancel your current subscription first.');
+          setLoadingPlan(null);
+          return;
+        } else if (targetIdx > currentIdx) {
+          // Redirect to account page and scroll to upgrade
+          window.location.href = '/profile#upgrade';
+          setLoadingPlan(null);
+          return;
         }
-        setLoadingPlan(null);
-        return;
       }
       // No active subscription, allow purchase
       const apiPlan = planToApiName[planName];
