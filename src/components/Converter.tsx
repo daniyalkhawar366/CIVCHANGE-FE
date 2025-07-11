@@ -42,13 +42,25 @@ const Converter: React.FC = () => {
       console.log('Conversion progress:', data);
       setCurrentJob(data);
       
-      if (data.status === 'completed' || data.status === 'completed_with_photopea' || data.status === 'completed_with_fallback') {
+      if (
+        data.status === 'completed' ||
+        data.status === 'completed_with_photopea' ||
+        data.status === 'completed_with_fallback'
+      ) {
         setIsConverting(false);
         toast.success('Conversion completed! Your PSD file is ready for download.');
       } else if (data.status === 'error') {
         setIsConverting(false);
         toast.error(`Conversion failed: ${data.error}`);
       }
+    });
+
+    // Add conversion-complete event listener
+    newSocket.on('conversion-complete', (data: ConversionJob) => {
+      console.log('Conversion complete:', data);
+      setCurrentJob(data);
+      setIsConverting(false);
+      toast.success('Conversion completed! Your PSD file is ready for download.');
     });
 
     newSocket.on('disconnect', () => {
@@ -194,6 +206,17 @@ const Converter: React.FC = () => {
     }
   };
 
+  // Helper to determine if download button should show
+  const canShowDownloadButton = (job: ConversionJob | null) => {
+    if (!job) return false;
+    const completedStatuses = [
+      'completed',
+      'completed_with_photopea',
+      'completed_with_fallback',
+    ];
+    return completedStatuses.includes(job.status) && !!job.downloadUrl;
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="bg-white rounded-lg shadow-lg p-8">
@@ -269,7 +292,7 @@ const Converter: React.FC = () => {
                 </div>
               )}
 
-              {(currentJob.status === 'completed' || currentJob.status === 'completed_with_photopea' || currentJob.status === 'completed_with_fallback') && currentJob.downloadUrl && (
+              {canShowDownloadButton(currentJob) && (
                 <div className="flex items-center justify-center space-x-4">
                   <button
                     onClick={handleDownload}
