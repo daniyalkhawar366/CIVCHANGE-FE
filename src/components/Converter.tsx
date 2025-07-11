@@ -101,6 +101,11 @@ const Converter: React.FC = () => {
       
       // Start conversion using API service
       await startConversion(jobId);
+
+      // Emit join-job event so frontend receives progress and completion events
+      if (socket) {
+        socket.emit('join-job', jobId);
+      }
       
       toast.success('File uploaded successfully! Starting conversion...');
       
