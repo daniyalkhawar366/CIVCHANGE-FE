@@ -42,8 +42,12 @@ const Converter: React.FC = () => {
 
     newSocket.on('conversion-progress', (data: ConversionJob) => {
       console.log('Conversion progress:', data);
-      setCurrentJob(data);
-      
+      setCurrentJob((prev: ConversionJob | null) => ({
+        ...prev,
+        ...data,
+        status: data.status || prev?.status || 'pending',
+      }));
+
       if (
         data.status === 'completed' ||
         data.status === 'completed_with_photopea' ||
@@ -221,7 +225,7 @@ const Converter: React.FC = () => {
       'completed_with_photopea',
       'completed_with_fallback',
     ];
-    return completedStatuses.includes(job.status) && !!job.downloadUrl;
+    return completedStatuses.includes(job.status) || (!!job.downloadUrl && job.status === 'pending');
   };
 
   return (
