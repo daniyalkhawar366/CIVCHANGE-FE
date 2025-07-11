@@ -195,8 +195,12 @@ const Converter: React.FC = () => {
 
   const handleDownload = () => {
     if (currentJob?.downloadUrl) {
+      const safeUrl = currentJob.downloadUrl.startsWith('/')
+        ? currentJob.downloadUrl
+        : '/' + currentJob.downloadUrl;
+
       const link = document.createElement('a');
-      link.href = `https://civchange-be-production.up.railway.app${currentJob.downloadUrl}`;
+      link.href = `https://civchange-be-production.up.railway.app${safeUrl}`;
       link.download = currentJob.fileName || 'converted.psd';
       document.body.appendChild(link);
       link.click();
@@ -220,12 +224,18 @@ const Converter: React.FC = () => {
   // Helper to determine if download button should show
   const canShowDownloadButton = (job: ConversionJob | null) => {
     if (!job) return false;
-    const completedStatuses = [
-      'completed',
-      'completed_with_photopea',
-      'completed_with_fallback',
-    ];
-    return completedStatuses.includes(job.status) || (!!job.downloadUrl && job.status === 'pending');
+
+    const safeStatus = job.status?.toLowerCase?.() || '';
+
+    return (
+      job.downloadUrl &&
+      (
+        safeStatus.includes('completed') ||
+        safeStatus.includes('saved') ||
+        safeStatus.includes('psd') ||
+        safeStatus === 'pending'
+      )
+    );
   };
 
   return (
